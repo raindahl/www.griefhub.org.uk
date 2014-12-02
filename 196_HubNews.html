@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+
+
+<!-- Mirrored from www.griefhub.org.uk/196_HubNews.html by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 27 Jun 2014 07:37:39 GMT -->
+<head>
+   
+   	<title>Hub News | Scottish Grief & Bereavement Hub</title>
+	<meta charset="utf-8" />
+			<meta name="robots" content="index, follow" />
+		
+	<meta name="description" content="" />
+	<meta name="keywords" content="" />
+	<meta name="author" content="MTC Media" />
+	
+	<link rel="stylesheet" href="css/default.css" media="screen" />
+	<link rel="stylesheet" href="css/print.css" media="print" />
+	<link rel="stylesheet" href="css/jquery-ui-1.8.18.custom.css" media="screen" />
+	
+	<!-- Google Fonts -->
+<!-- 	<link href='http://fonts.googleapis.com/css?family=Open+Sans:700' rel='stylesheet' type='text/css'> -->
+	
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/mobile/apple-touch-icon-114.html" />
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/mobile/apple-touch-icon-72.html" />
+	<link rel="apple-touch-icon-precomposed" href="images/mobile/apple-touch-icon-72.html" />
+	<link rel="shortcut icon" href="images/mobile/apple-touch-icon-72.html" />
+	<link rel="shortcut icon" href="images/favicon/favicon.html" />
+	
+	<link rel="profile" href="http://microformats.org/profile/hcard" />
+	
+    <!--[if IE 6]>
+        <link rel="stylesheet" href="./css/ie6.css" media="screen, projection" />
+    <![endif]-->	
+	
+	<script language=JavaScript>
+/**
+
+*/
+
+var datePickerDivID = "datepicker";
+var iFrameDivID = "datepickeriframe";
+
+var dayArrayShort = new Array('Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa');
+var dayArrayMed = new Array('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
+var dayArrayLong = new Array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
+var monthArrayShort = new Array('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
+var monthArrayMed = new Array('Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec');
+var monthArrayLong = new Array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+ 
+// these variables define the date formatting we're expecting and outputting.
+// If you want to use a different format by default, change the defaultDateSeparator
+// and defaultDateFormat variables either here or on your HTML page.
+var defaultDateSeparator = "index.html";        // common values would be "/" or "."
+var defaultDateFormat = "mdy"    // valid values are "mdy", "dmy", and "ymd"
+var dateSeparator = defaultDateSeparator;
+var dateFormat = defaultDateFormat;
+
+/**
+This is the main function you'll call from the onClick event of a button.
+Normally, you'll have something like this on your HTML page:
+
+Start Date: <input name="StartDate">
+<input type=button value="select" onclick="displayDatePicker('StartDate');">
+
+That will cause the datepicker to be displayed beneath the StartDate field and
+any date that is chosen will update the value of that field. If you'd rather have the
+datepicker display beneath the button that was clicked, you can code the button
+like this:
+
+<input type=button value="select" onclick="displayDatePicker('StartDate', this);">
+
+So, pretty much, the first argument (dateFieldName) is a string representing the
+name of the field that will be modified if the user picks a date, and the second
+argument (displayBelowThisObject) is optional and represents an actual node
+on the HTML document that the datepicker should be displayed below.
+
+In version 1.1 of this code, the dtFormat and dtSep variables were added, allowing
+you to use a specific date format or date separator for a given call to this function.
+Normally, you'll just want to set these defaults globally with the defaultDateSeparator
+and defaultDateFormat variables, but it doesn't hurt anything to add them as optional
+parameters here. An example of use is:
+
+<input type=button value="select" onclick="displayDatePicker('StartDate', false, 'dmy', '.');">
+
+This would display the datepicker beneath the StartDate field (because the
+displayBelowThisObject parameter was false), and update the StartDate field with
+the chosen value of the datepicker using a date format of dd.mm.yyyy
+*/
+function displayDatePicker(dateFieldName, displayBelowThisObject, dtFormat, dtSep)
+{
+  var targetDateField = document.getElementsByName (dateFieldName).item(0);
+ 
+  // if we weren't told what node to display the datepicker beneath, just display it
+  // beneath the date field we're updating
+  if (!displayBelowThisObject)
+    displayBelowThisObject = targetDateField;
+ 
+  // if a date separator character was given, update the dateSeparator variable
+  if (dtSep)
+    dateSeparator = dtSep;
+  else
+    dateSeparator = defaultDateSeparator;
+ 
+  // if a date format was given, update the dateFormat variable
+  if (dtFormat)
+    dateFormat = dtFormat;
+  else
+    dateFormat = defaultDateFormat;
+ 
+  var x = displayBelowThisObject.offsetLeft;
+  var y = displayBelowThisObject.offsetTop + displayBelowThisObject.offsetHeight ;
+ 
+  // deal with elements inside tables and such
+  var parent = displayBelowThisObject;
+  while (parent.offsetParent) {
+    parent = parent.offsetParent;
+    x += parent.offsetLeft;
+    y += parent.offsetTop ;
+  }
+ 
+  drawDatePicker(targetDateField, x, y);
+}
+
+
+/**
+Draw the datepicker object (which is just a table with calendar elements) at the
+specified x and y coordinates, using the targetDateField object as the input tag
+that will ultimately be populated with a date.
+
+This function will normally be called by the displayDatePicker function.
+*/
+function drawDatePicker(targetDateField, x, y)
+{
+  var dt = getFieldDate(targetDateField.value );
+ 
+  // the datepicker table will be drawn inside of a <div> with an ID defined by the
+  // global datePickerDivID variable. If such a div doesn't yet exist on the HTML
+  // document we're working with, add one.
+  if (!document.getElementById(datePickerDivID)) {
+    // don't use innerHTML to update the body, because it can cause global variables
+    // that are currently pointing to objects on the page to have bad references
+    //document.body.innerHTML += "<div id='" + datePickerDivID + "' class='dpDiv'></div>";
+    var newNode = document.createElement("div");
+    newNode.setAttribute("id", datePickerDivID);
+    newNode.setAttribute("class", "dpDiv");
+    newNode.setAttribute("style", "visibility: hidden;");
+    document.body.appendChild(newNode);
+  }
+ 
+  // move the datepicker div to the proper x,y coordinate and toggle the visiblity
+  var pickerDiv = document.getElementById(datePickerDivID);
+  pickerDiv.style.position = "absolute";
+  pickerDiv.style.left = x + "px";
+  pickerDiv.style.top = y + "px";
+  pickerDiv.style.visibility = (pickerDiv.style.visibility == "visible" ? "hidden" : "visible");
+  pickerDiv.style.display = (pickerDiv.style.display == "block" ? "none" : "block");
+  pickerDiv.style.zIndex = 10000;
+ 
+  // draw the datepicker table
+  refreshDatePicker(targetDateField.name, dt.getFullYear(), dt.getMonth(), dt.getDate());
+}
+
+
+/**
+This is the function that actually draws the datepicker calendar.
+*/
+function refreshDatePicker(dateFieldName, year, month, day)
+{
+  // if no arguments are passed, use today's date; otherwise, month and year
+  // are required (if a day is passed, it will be highlighted later)
+  var thisDay = new Date();
+ 
+  if ((month >= 0) && (year > 0)) {
+    thisDay = new Date(year, month, 1);
+  } else {
+    day = thisDay.getDate();
+    thisDay.setDate(1);
+  }
+ 
+  // the calendar will be drawn as a table
+  // you can customize the table elements with a global CSS style sheet,
+  // or by hardcoding style and formatting elements below
+  var crlf = "\r\n";
+  var TABLE = "<table cols=7 class='dpTable'>" + crlf;
+  var xTABLE = "</table>" + crlf;
+  var TR = "<tr class='dpTR'>";
+  var TR_title = "<tr class='dpTitleTR'>";
+  var TR_days = "<tr class='dpDayTR'>";
+  var TR_todaybutton = "<tr class='dpTodayButtonTR'>";
+  var xTR = "</tr>" + crlf;
+  var TD = "<td class='dpTD' onMouseOut='this.className=\"dpTD\";' onMouseOver=' this.className=\"dpTDHover\";' ";    // leave this tag open, because we'll be adding an onClick event
+  var TD_title = "<td colspan=5 class='dpTitleTD'>";
+  var TD_buttons = "<td class='dpButtonTD'>";
+  var TD_todaybutton = "<td colspan=7 class='dpTodayButtonTD'>";
+  var TD_days = "<td class='dpDayTD'>";
+  var TD_selected = "<td class='dpDayHighlightTD' onMouseOut='this.className=\"dpDayHighlightTD\";' onMouseOver='this.className=\"dpTDHover\";' ";    // leave this tag open, because we'll be adding an onClick event
+  var xTD = "</td>" + crlf;
+  var DIV_title = "<div class='dpTitleText'>";
+  var DIV_selected = "<div class='dpDayHighlight'>";
+  var xDIV = "</div>";
+ 
+  // start generating the code for the calendar table
+  var html = TABLE;
+ 
+  // this is the title bar, which displays the month and the buttons to
+  // go back to a previous month or forward to the next month
+  html += TR_title;
+ html += TD_buttons + getButtonCode(dateFieldName, thisDay, -1, "&lt;") + xTD;
+  html += TD_title + DIV_title + monthArrayLong[ thisDay.getMonth()] + " " + thisDay.getFullYear() + xDIV + xTD;
+ html += TD_buttons + getButtonCode(dateFieldName, thisDay, 1, "&gt;") + xTD;
+  html += xTR;
+  html += xTR;
+ 
+  // this is the row that indicates which day of the week we're on
+  html += TR_days;
+  for(i = 0; i < dayArrayShort.length; i++)
+    html += TD_days + dayArrayShort[i] + xTD;
+  html += xTR;
+ 
+  // now we'll start populating the table with days of the month
+  html += TR;
+ 
+  // first, the leading blanks
+  for (i = 0; i < thisDay.getDay(); i++)
+    html += TD + "&nbsp;" + xTD;
+ theDate = new Date();
+  // now, the days of the month
+  do {
+    dayNum = thisDay.getDate();
+    TD_onclick = " onclick=\"updateDateField('" + dateFieldName + "', '" + getDateString(thisDay) + "');\">";
+
+	if (dayNum == day)
+	  html += TD_selected + TD_onclick + DIV_selected + dayNum + xDIV + xTD;
+	else
+	  html += TD + TD_onclick + dayNum + xTD;
+	   
+    // if this is a Saturday, start a new row
+    if (thisDay.getDay() == 6)
+      html += xTR + TR;
+    
+    // increment the day
+    thisDay.setDate(thisDay.getDate() + 1);
+  } while (thisDay.getDate() > 1)
+ 
+  // fill in any trailing blanks
+  if (thisDay.getDay() > 0) {
+    for (i = 6; i > thisDay.getDay(); i--)
+      html += TD + "&nbsp;" + xTD;
+  }
+  html += xTR;
+ 
+  // add a button to allow the user to easily return to today, or close the calendar
+  var today = new Date();
+  var todayString = "Today is " + dayArrayMed[today.getDay()] + ", " + monthArrayMed[ today.getMonth()] + " " + today.getDate();
+  html += TR_todaybutton + TD_todaybutton;
+  html += "<button class='dpTodayButton' onClick='refreshDatePicker(\"" + dateFieldName + "\");'>today</button>&nbsp;";
+  html += "<button class='dpTodayButton' onClick='updateDateField(\"" + dateFieldName + "\");'>close</button>";
+  html += xTD + xTR;
+ 
+  // and finally, close the table
+  html += xTABLE;
+ 
+  document.getElementById(datePickerDivID).innerHTML = html;
+  // add an "iFrame shim" to allow the datepicker to display above selection lists
+  adjustiFrame();
+}
+
+
+/**
+Convenience function for writing the code for the buttons that bring us back or forward
+a month.
+*/
+function getButtonCode(dateFieldName, dateVal, adjust, label)
+{
+  var newMonth = (dateVal.getMonth () + adjust) % 12;
+  var newYear = dateVal.getFullYear() + parseInt((dateVal.getMonth() + adjust) / 12);
+  if (newMonth < 0) {
+    newMonth += 12;
+    newYear += -1;
+  }
+ 
+  return "<button class='dpButton' onClick='refreshDatePicker(\"" + dateFieldName + "\", " + newYear + ", " + newMonth + ");'>" + label + "</button>";
+}
+
+
+/**
+Convert a JavaScript Date object to a string, based on the dateFormat and dateSeparator
+variables at the beginning of this script library.
+*/
+function getDateString(dateVal)
+{
+  var dayString = "00" + dateVal.getDate();
+  var monthString = "00" + (dateVal.getMonth()+1);
+  dayString = dayString.substring(dayString.length - 2);
+  monthString = monthString.substring(monthString.length - 2);
+ 
+  switch (dateFormat) {
+    case "dmy" :
+      return dayString + dateSeparator + monthString + dateSeparator + dateVal.getFullYear();
+    case "ymd" :
+      return dateVal.getFullYear() + dateSeparator + monthString + dateSeparator + dayString;
+    case "mdy" :
+    default :
+      return monthString + dateSeparator + dayString + dateSeparator + dateVal.getFullYear();
+  }
+}
+
+
+/**
+Convert a string to a JavaScript Date object.
+*/
+function getFieldDate(dateString)
+{
+  var dateVal;
+  var dArray;
+  var d, m, y;
+ 
+  try {
+    dArray = splitDateString(dateString);
+    if (dArray) {
+      switch (dateFormat) {
+        case "dmy" :
+          d = parseInt(dArray[0], 10);
+          m = parseInt(dArray[1], 10) - 1;
+          y = parseInt(dArray[2], 10);
+          break;
+        case "ymd" :
+          d = parseInt(dArray[2], 10);
+          m = parseInt(dArray[1], 10) - 1;
+          y = parseInt(dArray[0], 10);
+          break;
+        case "mdy" :
+        default :
+          d = parseInt(dArray[1], 10);
+          m = parseInt(dArray[0], 10) - 1;
+          y = parseInt(dArray[2], 10);
+          break;
+      }
+      dateVal = new Date(y, m, d);
+    } else if (dateString) {
+      dateVal = new Date(dateString);
+    } else {
+      dateVal = new Date();
+    }
+  } catch(e) {
+    dateVal = new Date();
+  }
+ 
+  return dateVal;
+}
+
+
+/**
+Try to split a date string into an array of elements, using common date separators.
+If the date is split, an array is returned; otherwise, we just return false.
+*/
+function splitDateString(dateString)
+{
+  var dArray;
+  if (dateString.indexOf("index.html") >= 0)
+    dArray = dateString.split("index.html");
+  else if (dateString.indexOf(".") >= 0)
+    dArray = dateString.split(".");
+  else if (dateString.indexOf("-") >= 0)
+    dArray = dateString.split("-");
+  else if (dateString.indexOf("\\") >= 0)
+    dArray = dateString.split("\\");
+  else
+    dArray = false;
+ 
+  return dArray;
+}
+
+/**
+Update the field with the given dateFieldName with the dateString that has been passed,
+and hide the datepicker. If no dateString is passed, just close the datepicker without
+changing the field value.
+
+Also, if the page developer has defined a function called datePickerClosed anywhere on
+the page or in an imported library, we will attempt to run that function with the updated
+field as a parameter. This can be used for such things as date validation, setting default
+values for related fields, etc. For example, you might have a function like this to validate
+a start date field:
+
+function datePickerClosed(dateField)
+{
+  var dateObj = getFieldDate(dateField.value);
+  var today = new Date();
+  today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+ 
+  if (dateField.name == "StartDate") {
+    if (dateObj < today) {
+      // if the date is before today, alert the user and display the datepicker again
+      alert("Please enter a date that is today or later");
+      dateField.value = "";
+      document.getElementById(datePickerDivID).style.visibility = "visible";
+      adjustiFrame();
+    } else {
+      // if the date is okay, set the EndDate field to 7 days after the StartDate
+      dateObj.setTime(dateObj.getTime() + (7 * 24 * 60 * 60 * 1000));
+      var endDateField = document.getElementsByName ("EndDate").item(0);
+      endDateField.value = getDateString(dateObj);
+    }
+  }
+}
+
+*/
+function updateDateField(dateFieldName, dateString)
+{
+  var targetDateField = document.getElementsByName (dateFieldName).item(0);
+  if (dateString)
+    targetDateField.value = dateString;
+ 
+  var pickerDiv = document.getElementById(datePickerDivID);
+  pickerDiv.style.visibility = "hidden";
+  pickerDiv.style.display = "none";
+ 
+  adjustiFrame();
+  targetDateField.focus();
+ 
+  // after the datepicker has closed, optionally run a user-defined function called
+  // datePickerClosed, passing the field that was just updated as a parameter
+  // (note that this will only run if the user actually selected a date from the datepicker)
+  if ((dateString) && (typeof(datePickerClosed) == "function"))
+    datePickerClosed(targetDateField);
+}
+
+
+/**
+Use an "iFrame shim" to deal with problems where the datepicker shows up behind
+selection list elements, if they're below the datepicker. The problem and solution are
+described at:
+
+http://dotnetjunkies.com/WebLog/jking/archive/2003/07/21/488.aspx
+http://dotnetjunkies.com/WebLog/jking/archive/2003/10/30/2975.aspx
+*/
+function adjustiFrame(pickerDiv, iFrameDiv)
+{
+  // we know that Opera doesn't like something about this, so if we
+  // think we're using Opera, don't even try
+  var is_opera = (navigator.userAgent.toLowerCase().indexOf("opera") != -1);
+  if (is_opera)
+    return;
+  
+  // put a try/catch block around the whole thing, just in case
+  try {
+    if (!document.getElementById(iFrameDivID)) {
+      // don't use innerHTML to update the body, because it can cause global variables
+      // that are currently pointing to objects on the page to have bad references
+      //document.body.innerHTML += "<iframe id='" + iFrameDivID + "' src='javascript:false;' scrolling='no' frameborder='0'>";
+      var newNode = document.createElement("iFrame");
+      newNode.setAttribute("id", iFrameDivID);
+      newNode.setAttribute("src", "javascript:false;");
+      newNode.setAttribute("scrolling", "no");
+      newNode.setAttribute ("frameborder", "0");
+      document.body.appendChild(newNode);
+    }
+    
+    if (!pickerDiv)
+      pickerDiv = document.getElementById(datePickerDivID);
+    if (!iFrameDiv)
+      iFrameDiv = document.getElementById(iFrameDivID);
+    
+    try {
+      iFrameDiv.style.position = "absolute";
+      iFrameDiv.style.width = pickerDiv.offsetWidth;
+      iFrameDiv.style.height = pickerDiv.offsetHeight ;
+      iFrameDiv.style.top = pickerDiv.style.top;
+      iFrameDiv.style.left = pickerDiv.style.left;
+      iFrameDiv.style.zIndex = pickerDiv.style.zIndex - 1;
+      iFrameDiv.style.visibility = pickerDiv.style.visibility ;
+      iFrameDiv.style.display = pickerDiv.style.display;
+    } catch(e) {
+    }
+ 
+  } catch (ee) {
+  }
+ 
+}
+
+
+</script>
+
+<style>
+/*body {
+	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
+	font-size: .8em;
+	}*/
+
+/* the div that holds the date picker calendar */
+.dpDiv {
+	}
+
+
+/* the table (within the div) that holds the date picker calendar */
+.dpTable {
+	font-family: Tahoma, Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	text-align: center;
+	color: #505050;
+	background-color: #ece9d8;
+	border: 1px solid #AAAAAA;
+	}
+
+
+/* a table row that holds date numbers (either blank or 1-31) */
+.dpTR {
+	}
+
+
+/* the top table row that holds the month, year, and forward/backward buttons */
+.dpTitleTR {
+	}
+
+
+/* the second table row, that holds the names of days of the week (Mo, Tu, We, etc.) */
+.dpDayTR {
+	}
+
+
+/* the bottom table row, that has the "This Month" and "Close" buttons */
+.dpTodayButtonTR {
+	}
+
+
+/* a table cell that holds a date number (either blank or 1-31) */
+.dpTD {
+	border: 1px solid #ece9d8;
+	}
+
+
+/* a table cell that holds a highlighted day (usually either today's date or the current date field value) */
+.dpDayHighlightTD {
+	background-color: #CCCCCC;
+	border: 1px solid #AAAAAA;
+	}
+
+
+/* the date number table cell that the mouse pointer is currently over (you can use contrasting colors to make it apparent which cell is being hovered over) */
+.dpTDHover {
+	background-color: #aca998;
+	border: 1px solid #888888;
+	cursor: pointer;
+	color: red;
+	}
+
+
+/* the table cell that holds the name of the month and the year */
+.dpTitleTD {
+	}
+
+
+/* a table cell that holds one of the forward/backward buttons */
+.dpButtonTD {
+	}
+
+
+/* the table cell that holds the "This Month" or "Close" button at the bottom */
+.dpTodayButtonTD {
+	}
+
+
+/* a table cell that holds the names of days of the week (Mo, Tu, We, etc.) */
+.dpDayTD {
+	background-color: #CCCCCC;
+	border: 1px solid #AAAAAA;
+	color: white;
+	}
+
+
+/* additional style information for the text that indicates the month and year */
+.dpTitleText {
+	font-size: 12px;
+	color: gray;
+	font-weight: bold;
+	}
+
+
+/* additional style information for the cell that holds a highlighted day (usually either today's date or the current date field value) */ 
+.dpDayHighlight {
+	color: 4060ff;
+	font-weight: bold;
+	}
+
+
+/* the forward/backward buttons at the top */
+.dpButton {
+	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
+	font-size: 10px;
+	color: gray;
+	background: #d8e8ff;
+	font-weight: bold;
+	padding: 0px;
+	}
+
+
+/* the "This Month" and "Close" buttons at the bottom */
+.dpTodayButton {
+	font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
+	font-size: 10px;
+	color: gray;
+	background: #d8e8ff;
+	font-weight: bold;
+	}
+
+</style></head>
+   
+   <body>
+       
+       <div id="wrapper">  
+           <div id="header">
+               <div class="mini_login">
+                   <div class="icons">
+                       <a href="index-2.html" class="home">Home</a>
+                       <a href="contact.html" class="contact">Contact Us</a>
+                   </div>
+                                          <p><a href="members/login.html" class="sign_in">Sign in</a> or <a href="members/login.html">Register</a></p>
+                                      </div>
+               
+               <a class="logo" title="" href="index-2.html">Scottish Grief &amp; Bereavement Hub</a>   
+                              <ul class="nav navy" role="navigation">
+                <li >
+                <a  href="index-2.html">Home</a>
+            </li>
+                        <li >
+                <a  href="134_About.html">About</a>
+            </li>
+                        <li >
+                <a  href="news.html">News</a>
+            </li>
+                        <li >
+                <a  href="138_Resources.html">Resources</a>
+            </li>
+                        <li >
+                <a  href="136_Education.html">Education</a>
+            </li>
+                        <li >
+                <a  href="137_Discussion.html">Discussion</a>
+            </li>
+                        <li >
+                <a class="active"  href="196_HubNews.html">Blog</a>
+            </li>
+                        <li >
+                <a  href="229_SpecialInterestGroups.html">SIGs</a>
+            </li>
+                        <li class="last">
+                <a  href="162_Links.html">Links</a>
+            </li>
+            </ul>               <span class="navy">&nbsp;</span>
+           </div><div id="content" role="main">	
+	
+    <ul class="breadcrumbs">
+    <li><a href="index-2.html">Home</a></li>
+    <li>&raquo;</li>
+    <li class='active'><a href='196_Hub-News.html'>Blog </a></li>
+</ul>                        <ul class="left_menu navy">
+                                <li class="title  active"><a href="196_HubNews.html">Blog</a></li>
+                            </ul>
+               	
+	<div class="block">
+		
+		<h1 class="navy">Blog</h1>
+
+		  <table style="width: 400px;" border="0" align="left">
+<tbody>
+<tr>
+<td><img src="cms/images/hub_logo_wheel.jpg" alt="" width="76" height="74" /></td>
+<td>
+<h1><span style="color: #333399;">&nbsp; Not Quite a Blog</span></h1>
+<h3><span style="color: #333399;">Occasional jottings from the Convener&nbsp; </span><span style="color: #333399;">about&nbsp;what has been going on in the Hub.&nbsp; Please ask questions or comment by <a href="contact.html" target="_blank">clicking here</a></span></h3>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="excerpt"><strong><span style="color: #800080;">&nbsp;</span></strong></p>
+<p class="excerpt"><strong><span style="color: #800080;">&nbsp;</span></strong></p>
+<p class="excerpt"><strong><span style="color: #800080;">&nbsp;</span></strong></p>
+<p class="excerpt"><strong><span style="color: #800080;">&nbsp;</span></strong></p>
+<p class="excerpt"><strong><span style="color: #000080;">&nbsp;</span></strong></p>
+<p class="excerpt">24 June 2014</p>
+<p class="excerpt">Later this week I shall retire as Convener of the Hub to make way for the transfer of the Hub into NES.&nbsp; I have thoroughly enjoyed my work over the past six and half years, visiting all the boards, working with Executive Leads and Coordinators, and meeting a wide range of NHS staff and others committed to creating better bereavement care.&nbsp;</p>
+<p>It has been an exciting time, with</p>
+<ul>
+<li>Shaping Bereavement Care</li>
+<li>When Someone Has Died</li>
+<li>e-Learning: Grief and Bereavement for NHSS</li>
+<li>the development of board policies and protocols</li>
+<li>guidance for the disposal of pregnancy loss </li>
+<li>working group on funeral poverty</li>
+<li>a new network for those working with bereaved children</li>
+</ul>
+<p>&nbsp;Along with the increasing interest in bereavement in NHSS, we have seen</p>
+<ul>
+<li>the development of Good Life Good Death Good Grief</li>
+<li>new procedures for death certification</li>
+<li>enquiries into cremation of infants and babies</li>
+<li>research on costs of bereavement</li>
+</ul>
+<p>I recently presented a short paper at the 10<sup>th</sup> ICGB in Hong Kong, entitled &ldquo;Scotland&rsquo;s Story&rdquo;.&nbsp; There was a deal of interest from many of the 30 countries represented there.&nbsp;</p>
+<p>My thanks to all of you for your support and encouragement, and thanks too to the Scottish Government for all their vision and support and for this next stage of development.</p>
+<p><strong><em>John Birrell</em></strong></p>
+<p class="excerpt">03 April 2014</p>
+<p class="excerpt">The Hub exists primarily to support NHSScotland and other groups across Scotland in the development of better bereavement care. <strong>&nbsp;Put Bereavement Care on the Agenda</strong> has become our warcry, and it was to encourage this that we launched the <a href="cms/files/agenda_award_entry_form_-_final.docx">Agenda Awards</a>&nbsp;at the beginning of the year. &nbsp;So far we have not had a lot of entries, which is disappointing since I know there are a lot of interesting things happening out there. &nbsp;So if you have brought bereavement onto the agenda of any group, or department, or to any committee, working group, or similar where you are involved, please tell us about it. &nbsp;You never know you might win an award!!</p>
+<p class="excerpt">In January the Hub hosted, at the request of the Scottish Government, a network day for organisations working with bereaved children. &nbsp;As a result of that a new page of the website was stablished and a directory of organisations working in this area was ceated. &nbsp;<a href="230_BereavedChildrenSIG.html">Click here to visit this page</a></p>
+<p class="excerpt">I was in NHS Ayrshire and Arran last week at a very sucessful stakeholders' day - around 100 people attended not just from the NHS, but from the local councils, schools, voluntary sector, and funeral directors. &nbsp;It was good to hear Professor Allan Kellahear speak about palliative care and bereavement care in the community, and the need to build compassionate communities. &nbsp;Compassionate communities are resillient communities, and resilience, we know, is an important tool in coping with grief. &nbsp;And Professor Steven Revel was on the platform also, speaking about coping with trauma, and the need for us all to be sensitive to the specific needs of those who have witnessed traumatic deaths and other events. &nbsp;</p>
+<p class="excerpt">A few weeks ago I was in Greater Glasgow and Clyde on the day they took delivery of an excellent little card they had commissioned from Cruse for all their staff. &nbsp;Entitled "Bereavement - pointers for staff" it gives five DOs and five DONTs when speaking with someone who has recently been bereaved. &nbsp;A copy of the card is on the NHSS Boards' Publications page - <a href="186_NHSSBoardspublications.html">click here to access</a>.</p>
+<p class="excerpt">Dundee University Department of Anatomy and their Creative Writing department may seem an odd combination, but together they linked with Good Life Good Death Good Grief to stage a fascinating day in Edinburgh lst month called In Memoriam where writers and artists joined with clinicians in considering how we relate to the human body in death. You can read a brief report <a href="http://www.dundee.ac.uk/humanities/news/2014/article/success-of-in-memoriam-event">here</a></p>
+<p class="excerpt">I have now had a first meeting with representatives from NES about the transfer of the Hub to them, which is scheduled for 1 July. &nbsp;There is still a lot to be discussed, but it does sound as though this transfer will secure the funding for the Hub and that NES are determined to maintain the work that we have established over the past five and a half years of the Shaping Bereavement Care programme. &nbsp; In Ayr last week I was asked to do an overview of what had been achieved, both within NHSS and wider over this period, and it was fascinating to see just what has been done, Shaping Bereavement Care, When Someone Has Died, the Cruse e-learning, Supporting Bereaved Children network, Funeral Poverty Group, Reserach on Costs of Bereavement, and loads more. &nbsp;I shall be presenting a similar report under the title Scotland's Story at the 10th International Conference on Grief and Bereavement in Contemporary Society, in Hong Kong in June.&nbsp;</p>
+<p class="excerpt">&nbsp;</p>
+<p class="excerpt">&nbsp;</p>
+<p class="excerpt">10 January 2014</p>
+<p class="excerpt">The publication yesterday of the report <a href="http://www.ncpc.org.uk/sites/default/files/LifeAfterDeath.pdf">Life After Death</a> by the National Council for Palliative Care, the National Bereavement Alliance and Dying Matters caused a flutter of tweets and a gaggle of sound bites.&nbsp; Thanks to the BBC News headlines first thing in the morning, you would have assumed the report was solely concerned with the experience of people returning to work after a bereavement.&nbsp; However this was only one of the "six steps to improve support in bereavement" which the report was proposing.</p>
+<p class="excerpt">Quoting the recent <a href="cms/files/secob_main_study_report.pdf" target="_blank">Scottish research on the costs of bereavement </a>the report states: "The costs of bereavement are too great to ignore, both for individuals and society."&nbsp;&nbsp;</p>
+<p class="excerpt">This report stresses six important areas where action is required.</p>
+<p class="excerpt"><strong>1. A named minister with responsibility for bereavement.</strong>&nbsp; In Scotland we have developed the work on bereavement largely under the banner of health, and Michael Matheson MSP, as minister for Public Health holds the responsibility there.&nbsp; However the cross-cutting nature of bereavement means that it is, or should be, on the agenda of every minister, and be taken seriously in education, criminal justice, finance and every other department of government.&nbsp; Almost a quarter of a million people in Scotland every year are significantly impacted by grief, and government must take this seriously.&nbsp; While the Health Department guidance <a href="http://www.sehd.scot.nhs.uk/mels/cel2011_09.pdf" target="_blank">Shaping Bereavement Care </a>called for a coordinator in every health board, similar coordination of government thinking on bereavement is urgently required.</p>
+<p class="excerpt"><strong>2. A national review of the impact of financial administrative and economic changes on those who have been bereaved.</strong>&nbsp; The report calls for a cross-departmental review in this area, recognising that "money worries are one of the biggest reported concerns" of bereaved people.&nbsp; Much of the responsibility for this lies with Westminster, where decisions about benefits, universal credit and under-occupancy charges etc are currently decided.&nbsp; However in Scotland we are actively involved in discussing funeral poverty &ndash; the increasing gap between the cost of a funeral and the available funds a person or a family has to pay for the funeral.&nbsp; The Hub leads a working group including money advice professionals, churches, representatives of the funeral industry and bereavement agencies which is seeking ways forward.</p>
+<p class="excerpt"><strong>3. Clarity about who is responsible for commissioning and providing bereavement support, with better coordination and information about services.</strong>&nbsp; &nbsp;One of the startling figures in the report is that just 54% of the newly created Health and Wellbeing Boards in England had considered end-of-life care in their forward planning.&nbsp; In Scotland, where of course we do things differently,&nbsp;every health board with direct patient involvement has responded positively to <a href="http://www.sehd.scot.nhs.uk/mels/cel2011_09.pdf" target="_blank">Shaping Bereavement Care</a>, and Executive Leads and Coordinators are in place in almost every board.&nbsp; However the extent of the implementation of the guidance varies considerably and resources remain woefully short. In the same way, while Scotland is well-served by the voluntary sector, the attention and support given to those working in bereavement care bears no relation to the actual costs of bereavement.&nbsp; The Scottish research, cited above and in the report, showed that for those bereaved by the death of a spouse, the additional health costs were around &pound;22 million.&nbsp; Add to that the health costs of other bereavements, and all the other costs over and above the health costs, and the imbalance between costs and investment in support is striking.</p>
+<p class="excerpt"><strong>4. Training in bereavement for all coming into contact with bereaved people, at a level appropriate to their role.&nbsp; </strong>In 2011 <a href="http://www.crusescotland.org.uk/" target="_blank">Cruse Bereavement Care Scotland</a> was commissioned by SGHD to develop on-line learning courses for NHS staff, and to date almost 10,000 members of staff have undertaken this training.&nbsp; CBCS reports a growing interest in the courses from outwith the NHS - in social care, prisons, residential care, education etc.&nbsp; Most health boards also have their own in-house courses, and many of the hospices have developed education units.&nbsp; However taking learning about bereavement out into the general public is a challenge - there remains a reluctance to talk about death!</p>
+<p class="excerpt"><strong>5. Better bereavement support at work.</strong>&nbsp;&nbsp; This is&nbsp;the section which caught the headlines.&nbsp; There have been several calls for statutory paid bereavement leave over the past few years, and such stories are always create interest. &nbsp; However the individual nature of grief perhaps suggests that each person's requirements here may vary.&nbsp; Even within families, who is to decide which members of the family are entitled to paid leave, and which are not?&nbsp;&nbsp; Rather, it is important that every employer has an understanding of grief, and that their compassionate leave policies demonstrate equality in how they respond to a bereaved employee; but compassionate discretion is also important, and the exercise of that depends on an open and honest discussion about each person's needs. The same need for understanding and to demonstrate compassion, applies to the way an employee is treated on their return to work, both by management and by colleagues.</p>
+<p class="excerpt"><strong>6. More compassionate communities where everyone knows enough about grief to play their part in supporting people around death.</strong>&nbsp; This is, perhaps, the most important step of the six.&nbsp; As a nation we still do not talk about dying, death and bereavement.&nbsp; And if we aren't prepared to talk about it, how can we ever manage to put into practice the principles of good bereavement support?&nbsp; The importance of being able to talk about your grief, and about the person you grieve, is key to finding a good outcome to your bereavement.&nbsp; But the opportunity to talk depends on the availability of someone to listen.&nbsp; The Scottish organisation <a href="http://www.goodlifedeathgrief.org.uk/" target="_blank">Good Life Good Death Good Grief</a> is campaigning to make Scotland more open to these issues, and to encourage each of us to be more open to talk about end of life issues.</p>
+<p><strong>Life After Death is a call to action South of the border.&nbsp; We need to echo that call in Scotland, to government and to people.&nbsp;&nbsp; In Scotland a quarter of a million people each year are experiencing the total disruption to their living which is bereavement.&nbsp; As a nation that cares, we need to respond better than we do.</strong></p>
+<p class="excerpt"><span style="color: #000080;"><strong>&nbsp;</strong></span></p>
+<p class="excerpt"><span style="color: #000080;"><strong>5 December 2013</strong></span></p>
+<p><span style="font-family: 'Verdana','sans-serif'; color: navy; font-size: 7.5pt;">I had an interesting email from a colleague in Japan yesterday who came to visit a year ago.&nbsp; He writes: <em><span style="font-family: 'Verdana','sans-serif';">I'm actively working with local volunteers to make Matsumoto (where I live now) more compassionate and supportive for the bereaved. We get together once every month to make a booklet that is modelled after "When someone has died: information for you." &nbsp;The draft should be ready by January 2014. We then plan to invite or reach out to groups of health professionals, undertakers, police, fire-fighters, interested NPO staff, and local government officials so as to get feedback to improve quality of the draft. Once we finalize the content and format of the booklet, we then hope to present it to the mayor (who is a Medical Doctor) whose chief policy is to make Matsumoto the city of long and healthful lives.</span></em>&nbsp;&nbsp;&nbsp; <span style="color: #000080;">It's great to know that our work in Scotland is being replicated in Japan!</span></span></p>
+<p class="excerpt">&nbsp;</p>
+<p><span style="color: #000080;">Nearer home, there have been a number of developments.&nbsp; It was good to visit NHS Ayrshire and Arran at the beginning of November and see plans developing there for a bereavement follow up project which would contact relatives at a fixed time following a death.&nbsp; I know these projects are happening elsewhere, within specific units, but I am not aware of any board doing this on a large scale? I also have a visit coming up to meet the bereavement group in NHS Dumfries and Galloway and will be speaking shorlty to the new Executive Lead in NHS Orkney. </span></p>
+<p class="excerpt">&nbsp;</p>
+<p><span style="color: #000080;"><span style="font-family: 'Verdana','sans-serif'; color: navy; font-size: 7.5pt;">The following week I had an enjoyable visit to the Scottish Partnership for Palliative Care where I had been asked to speak about Death Certification.&nbsp; This was just after the implementation of the new process was postponed, but it was still good to have a chance to explain and discuss some of the principles.</span></span><span style="font-family: 'Verdana','sans-serif'; color: black; font-size: 7.5pt;">&nbsp;</span></p>
+<p class="excerpt">&nbsp;</p>
+<p><span style="color: #000080;"><span style="font-family: 'Verdana','sans-serif'; color: navy; font-size: 7.5pt;">I also represented the Hub at the Scottish Cot Death Trust consultation on Sudden Unexpected Death in Infancy which discussed the&nbsp;transfer of responsibility for&nbsp;monitoring and reporting from HIS to local health boards,&nbsp;and at the Good Life Good Death Good Grief event the following week where we heard of the plans for a national weekend for Scotland to remember "Absent Friends" based on the old Celtic festival of Samhain.&nbsp;</span></span></p>
+<p class="excerpt">&nbsp;</p>
+<p><span style="color: #000080;"><span style="font-family: 'Verdana','sans-serif'; color: navy; font-size: 7.5pt;">In November also, I met with the Hub's funders in Scottish Government, following the publication of the Review of the Hub by Scottish health Council.&nbsp; The review, and the feedback from our Network Day, formed the basis for a very positive discussion about the Hub's achievements and how the work could be continued.&nbsp; Negotiations are now underway to find a way of "mainstreaming" the work of the Hub into NHSScotland.&nbsp; It is too early to say what this will look like, but we will of course keep you all posted.</span></span></p>
+<p class="excerpt">&nbsp;</p>
+<p><span style="color: #000080;"><span style="font-family: 'Verdana','sans-serif'; color: navy; font-size: 7.5pt;">On Tuesday I was at the Choose Life Annual Forum to hear the Minister launch Choose Life 2.&nbsp; The new strategy concentrates very largely on Suicide Reduction, but we were assured that the focus on postvention - the care of those bereaved by suicide - would continue.&nbsp; </span></span></p>
+<p><span style="color: #000080;"><span style="font-family: 'Verdana','sans-serif'; color: navy; font-size: 7.5pt;">And so the work goes on - all of it about getting bereavement care onto the agenda, and in that respect it is exciting to look forward to two events coming up in January.&nbsp; </span></span></p>
+<p><span style="color: #000080;"><span style="font-family: 'Verdana','sans-serif'; color: navy; font-size: 7.5pt;">The Hub will launch the SGBH 2014 Agenda Awards - a competition open to all members of the Hub to get bereavement and bereavement care on to the agendas of more meetings.&nbsp; I know it is frustrating, but we have already shown that working through the groups and committees of the NHS and other agencies is an important way to advance the knowledge and planning of bereavement care.&nbsp; Details of the Agenda Awards will be posted later this month in the news zone.</span></span></p>
+<p><span style="color: #000080;"><span style="font-family: 'Verdana','sans-serif'; color: navy; font-size: 7.5pt;">Of course equally important is supporting those who are actually delivering bereavement care, and, at the request of Scottish Government,&nbsp;the Hub will be hosting a network day for organisations which work with and support bereaved children in Scotland.&nbsp; We are doing this in conjunction with the Child Bereavement Network, and&nbsp;you will find details of that event&nbsp;<a href="index-2.html" target="_blank">by clicking here</a>.</span></span></p>
+<p class="excerpt">&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p class="excerpt"><span style="color: #000080;"><strong>23 October</strong></span></p>
+<p class="excerpt"><span style="color: #000080;"><em><span style="color: #ff0000;"><strong>Have your say on article below in&nbsp;our discussion area - </strong></span></em><a href="137_Discussion.html"><em><span style="color: #ff0000;"><strong>click here to share your thoughts</strong></span></em></a><em><span style="color: #ff0000;"><strong>.</strong></span></em></span></p>
+<p class="excerpt"><span style="color: #000080;">The Hub held the second meeting of the group looking at Funeral Poverty on Tuesday this week.&nbsp; We met in the premises of Citizens Advice Scotland in Edinburgh, and as well as CAS, there was representation from Money Advice Scotland, Church of Scotland, NHS Bereavement Coordinators, Hospice Bereavement Coordinators, Good Life Good Death Good Grief, Hospice Chaplains and the Society of Allied and Independent Funeral Directors. We were again joined by Anne Corden, a senior researcher from the Social Policy Unit at York University.</span></p>
+<p class="excerpt"><span style="color: #000080;">The outcomes from our first meeting, back in April, had included raising with the professional bodies for funeral directors (SAIF and NAFD) the need for more clarity and transparency around their charges, and this was again a central theme at this meeting.&nbsp; We also highlighted the need for consistency of terminology - for example the way terms like <em>basic, simple, low budget </em>or<em> standard</em> are used to describe a funeral, suggesting that this might be cheapest available, when&nbsp;often this is not the case.&nbsp;&nbsp;We noted how&nbsp;these terms may be used by different funeral directors to include different levels of service or added extras.</span></p>
+<p class="excerpt"><span style="color: #000080;">Other issues discussed included the differences in the cost of burial or cremation across the country, and how these costs have increased in recent years (by over 50% in the past 5 years).&nbsp;&nbsp;However, a report is due out soon which will analyse these costs across the UK, and will show that these costs form only around a third or less of the total cost of a funeral in Scotland.</span></p>
+<p class="excerpt"><span style="color: #000080;">We also looked at the need to encourage a discussion of funeral culture - what do we need to include and what could be left out, or arranged privately - for example buying your own flowers from the florist or the supermarket.</span></p>
+<p class="excerpt"><span style="color: #000080;">We heard of the excellent work done by one voluntary organisation in London which trains "mentors" to support families on low incomes to make choices around funerals they need to arrange, and which has negotiated special rates with local funeral directors.&nbsp; There was also discussion about other contractual arrangements which have been made by local authorities to ensure a funeral is available at less than half the price of the average funeral.&nbsp; Is there a place for developing similar services in Scotland?&nbsp;</span></p>
+<p class="excerpt"><span style="color: #000080;">The main concern remains how people on a low&nbsp;income or with limited resources can arrange a funeral when so often such arrangements require to be made at short notice.&nbsp; With the average funeral costing around &pound;3,500, not including the discretionary items which people like to add on (like flowers, catering and &nbsp;memorials) and with funeral directors increasingly looking for a deposit to cover all or at least some of the non-discretionary items, where can people find support?&nbsp; Payday loan companies may be appropriate for some who only need a very short-term loan, but we discussed the possibility of credit unions becoming more&nbsp;widely&nbsp;involved in funding this type of purchase.</span></p>
+<p class="excerpt"><span style="color: #000080;">The&nbsp;long-standing discussion is about the need to increase the cap on the Funeral Payment available, to those who qualify, through the Department of Work and Pensions and to improve the turn around time for applications.&nbsp; However it was felt that realistically this would not change, and finding ways of reducing costs, and of supporting and empowering families to make more realistic choices about the funeral was a more likely way forward.</span></p>
+<p class="excerpt"><span style="color: #000080;">It was pointed out that the NHS claims to support people from cradle to grave, but in fact the cover tends to be from cradle to mortuary.&nbsp; Is there an argument for a nationally available, government funded, basic "disposal" onto which those who wish could add services, memorials etc as and when they wished and had funds available.</span></p>
+<p class="excerpt"><span style="color: #000080;">Have your say on this topic in the discussion area - <a href="137_Discussion.html">click here to share your thoughts</a>.</span></p>
+<p class="excerpt"><span style="color: #000080;">&nbsp;</span></p>
+<p class="excerpt">&nbsp;</p>
+<p class="excerpt">5 October</p>
+<p class="excerpt">Looking back over September, the main item on the Hub's agenda seemed to be preparation for the Network Day, which took place on Wednesday 2 October in Stirling. &nbsp;Almost 90 people came together for a day which was split between formal inputs on current topics and networking time around the tables, with themed tables in the morning and scenarios to spark discussion in the afternoon. &nbsp;Throughout the day ideas were sought for the way the Hub should develop, and these will be fed in to the future planning in the Core Group and to the Scottish Government. &nbsp;<a href="index-2.html">Click here</a> for a fuller report on the day and to see the presentations and video of the day.</p>
+<p class="excerpt">The Network Day also saw the launch of our Twitter presence. &nbsp;Please start using this account to talk about issues around bereavement and bereavement care. &nbsp;#griefhubscot is the address.</p>
+<p class="excerpt">September also saw the submission by the Scottish Health Council of their review of the Hub. &nbsp;Many thanks to all of you who completed the survey the SHC sent out, and to those Coordinators and Exec Leads who were intereviewed. &nbsp;We hope the SHC will publish the report in due course, but currently it is being studied by the Scottish Government group who provide our funding. &nbsp;We will report the outcome of that just as soon as we hear anything.</p>
+<p class="excerpt">Other events in September included a meeting with Sandra Stankus to hear about the exciting plans for a new bereavement office planned in Aberdeen Royal Infirmary, and attendance at the 11th Annnual Death Dying and Disposal conference where I was speaking about the Scottish guidance on dispoal of <a href="http://www.sehd.scot.nhs.uk/cmo/CMO(2012)07.pdf" target="_blank">preganancy loss</a>&nbsp;to the ineterest of a number of people in England and elsewhere where clinical waste remains the most common disposal route.</p>
+<p class="excerpt">Meanwhile discussion continues around the production of a new edition of When Someone Has Died which is due in April for the introduction of the new death certification procedures, and around the issue of funeral poverty. &nbsp;If you haven't seen it, you might be inetersted in the latest<a href="http://www.sunlifedirect.co.uk/COD-report-2013" target="_blank"> report on the cost of dying</a>, which shows the average cost os a funeral, inclusive of everything, has gone up to &pound;7,622. &nbsp;</p>
+<p class="excerpt">&nbsp;</p>
+<p class="excerpt">&nbsp;</p>
+<p class="excerpt">&nbsp;</p>
+<p class="excerpt"><span style="color: #000080;">August was a busy month with visits to a number of boards.&nbsp; </span></p>
+<p class="excerpt"><span style="color: #000080;">It was good to re-visit the Golden Jubilee and to hear of the developments there with Jim Battison expanding his role as Mortuary Manager to take on responsibility for Family Relations, and beginning to explore what that might mean as he meets families after a death in the hospital.&nbsp; It was also interesting to hear about their introduction of <a href="http://www.kingsfund.org.uk/projects/schwartz-center-rounds" target="_blank">Schwarz Centre Rounds</a> as a way of debriefing after critical events - including deaths in the hospital.&nbsp; It will be good to hear more about this as they develop this idea.</span></p>
+<p class="excerpt"><span style="color: #000080;">I was able to combine a speaking engagement&nbsp;in the Borders with a visit to NHS Borders where David Thaw, the Bereavement Coordinator, and his colleagues shared their new Bereavement Policy and a Bereavement Protocol which combines procedures in a number of different locations. Both documents are now in the NHS <a href="184_NHSSBoardsPoliciesonBereavementCare.html">Resources section of the website</a>.&nbsp;&nbsp; The speaking engagement was with the Borders Voluntary Community Care Forum, where I had been invited to discuss When Someone Has Died.&nbsp; The group had studied the booklet carefully and from that had gone on to discuss a variety of related matters around death, dying and bereavement.&nbsp; I came away with some useful suggestions for the next edition of WSHD.</span></p>
+<p class="excerpt"><span style="color: #000080;">The following week I was in Edinburgh to meet with Ann Chalmers from <a href="http://www.childbereavement.org.uk/" target="_blank">Child Bereavement UK</a> and Ann Rowland, CBUK Director of Bereavement Services.&nbsp; CBUK were successful in an application for funding from the Scottish Government to develop some of their work in Scotland, and we look forward to hearing of the appointment of staff to lead that work which will focus on coordinating and supporting exisiting work with bereaved children in the more deprived areas of our cities.</span></p>
+<p class="excerpt"><span style="color: #000080;">My next stop was Stornoway - my first visit to NHS Western Isles.&nbsp; Again it was good to see a near-final draft of a bereavement policy and protocol.&nbsp; We will get it onto the Hub as soon as it is signed off.&nbsp; My main purpose there was to meet&nbsp;a group who are developing a programme called "Bereavement First Aid" which will be a Level 1 programme of blended learning for all NHS staff, based around&nbsp;Course 1 of the Cruse e-learning,&nbsp;followed by a a group session of discussion, awareness raising and skills.&nbsp; This is being taken forward by a very enthusiastic group including chaplaincy, palliative care and general practice. </span></p>
+<p class="excerpt"><span style="color: #000080;">In among all this we&nbsp;were represented at meetings of&nbsp;the Cremation Commission,&nbsp;the Death Certification Advisiory Group and the Death Certification Implementation Board, and responded to a range of questions from as far away as Cambridgeshire, the Netherlands and Canada.&nbsp; </span></p>
+<p class="excerpt"><span style="color: #000080;">Then there was the planning for the <a href="index-2.html">NETWORK DAY</a> on 2 October, which is filling up quickly, and intial planning for the <a href="http://www.ncbhs.org.uk/" target="_blank">4th&nbsp;NATIONAL CONFERENCE ON BEREAVEMENT IN A&nbsp; HEALTHCARE SETTING&nbsp;</a>which is scheduled for September 2014.</span></p>
+<p class="excerpt"><span style="color: #000080;">Altogether a busy month, which was rounded off by attending Professor Craig White's seminar on Living with Complicated Grief.&nbsp; The seminar introduced his book of that title, published by Sheldon Press.&nbsp; This is a self-help book which encourages people to understand the nature of complicated grief and to&nbsp;utilise a number of psychological exercises such as imaginal writing and conversations.</span></p>
+<p class="excerpt"><span style="color: #000080;">&nbsp;</span></p>
+<p class="excerpt"><span style="color: #000080;">&nbsp;</span></p>
+<p class="excerpt"><strong><span style="color: #800080;">5 August</span></strong></p>
+<p class="excerpt"><span style="color: #800080;"><strong>Bookings are now being taken for The Hub Network Day.</strong>&nbsp; The programme is now finalised and available <strong><a href="cms/files/network_day_260713.pdf">here.</a></strong> We have a very full day of information giving and sharing, in the comfortable surroundings of the Stirling Management Centre, one of only two venues in Scotland awarded the highly coveted Conference Centre of Excellence Award.&nbsp; &nbsp;The day will cost only &pound;25 per person, and will definitely return value for money. <strong>Book now to avoid disappointment!</strong></span></p>
+<p class="excerpt"><span style="color: #800080;"><strong>The Death Certification Team</strong> at Scottish Government hosted a meeting of the Bereavement Coordinators at St Andrews House last week to discuss the local implementation of the new death certification procedures, and how bereavement services could support that work. &nbsp;The new procedures will impact on the experience of bereaved people who may find that the planning of a funeral is delayed while the death certificate is reviewed. &nbsp;This new requirement will affect around 25% of deaths, selected randomly, but delays may affect the majority of deaths.&nbsp; &nbsp;A consultation has recently been launched as to who should be eligible for an expedited review, allowing funerals to go ahead before the conclusion of the review process. &nbsp;You can read the consultation and how to respond to it </span><a href="http://www.scotland.gov.uk/Publications/2013/07/8852" target="_blank"><span style="color: #800080;"><strong>here</strong><strong>.</strong></span></a></p>
+<p class="excerpt"><span style="color: #800080;">It was good to attend the meeting of the<strong> National Bereavement Alliance</strong> in London last month. &nbsp;This emerging group links bereavement organisations and services in England and Wales and at the July meeting I presented a report on the range of work we have been doing in the Hub. &nbsp;You can access the presentation </span><strong><span style="color: #800080;"><a href="cms/files/presentation_for_nba_london_8_july_2013.pdf">here</a></span></strong><span style="color: #800080;">.&nbsp;&nbsp; I am glad that representatives of the NBA will be attending our Network Day.</span></p>
+<p class="excerpt"><span style="color: #800080;">I was privileged to share with a number of parents of those with<strong> Multiple and Profound Learning Disabilities</strong> who met to review some of the work that is being undertaken by PAMIS around bereavement resources for this very special group. &nbsp;You can read about the PAMIS project </span><a href="http://pamis.org.uk/_page.php?id=70" target="_blank"><strong><span style="color: #800080;">here</span></strong></a><strong><span style="color: #800080;">.</span></strong></p>
+<p class="excerpt"><strong><span style="color: #800080;">Browsing the papers this month I came across two interesting snippets. &nbsp;&nbsp;</span></strong></p>
+<p class="excerpt"><span style="color: #800080;"><strong>Sherlock Holmes star Eddie Marsan</strong> suggested audiences are drawn to tragic stories because it helps prepare them for grief.&nbsp; &nbsp;Marsan plays the father of a teenager in Channel 4's new four-part drama Southcliffe, about a quiet market town devastated by a spate of shootings after a lone gunman goes on the rampage.</span></p>
+<p><span style="color: #800080;">Eddie said: "I think humans create these stories, in books, films, TV and plays, in order to go through a cathartic exercise which prepares us to deal with grief. Because grief is part of life. We will experience grief at one point or another.&nbsp; But grief isn't the end of the story, you transcend grief, you come out the other side of it. You may not think you will but you do.&nbsp; "And I think these stories take us through that rollercoaster ride and get us through the other end." [Express and Star &ndash; 5 August]</span></p>
+<p><span style="color: #800080;">&nbsp;<strong>And this about the cumulative effect of grief</strong>:&nbsp; The retiring state Coroner in Western Australia told how he finds funerals difficult, admitting there are times he struggles to hold back tears when nobody else is crying.</span></p>
+<p><span style="color: #800080;">It's an almost peculiar admission for somebody who faces the tragedy of death every day, but the outgoing State Coroner says the ceremonies erode his ability to put work at arms' length and provide an occasion when the "enormity of the sorrow" breaks through.&nbsp; </span><span style="color: #800080;">You go to a funeral and somehow . . . I think the grief that has been held down comes to the fore," Mr Hope says. "I find it very difficult not to suddenly burst into tears when nobody else is. There is <strong>a sort of cumulative grief</strong> you are holding in check and the funeral sometimes seems to be the trigger that releases all that." [The West Australian]</span></p>
+<p>&nbsp;</p>
+<p>15 July</p>
+<p><strong><span style="text-decoration: underline;">Evaluation of the Hub:</span></strong> It&rsquo;s been a while since the last update on this blog, but that doesn&rsquo;t mean we haven&rsquo;t been busy!&nbsp; After a couple of weeks holiday, I had a really helpful meeting with folk from the Scottish Health Council who will shortly be undertaking an evaluation of the Hub for the Scottish Government.&nbsp; While this is primarily to help in decisions about funding, we are really looking forward to hearing their findings and seeing what people find helpful &ndash; and unhelpful &ndash; in the Hub.&nbsp;</p>
+<p><strong><span style="text-decoration: underline;">Board Visits:</span></strong> A visit to Greater Glasgow to meet Jackie Britton who has taken over responsibility for much of the roll out of Shaping Bereavement Care was an encouraging sign of things to come there. It was also good to re-visit Dumfries and Galloway a couple of weeks ago and hear from Director of Nursing Hazel Borland of the plans to take forward Shaping Bereavement Care there under the Person Centred work-stream.&nbsp; And this week I received an invitation to visit NHS Western Isles &ndash; the only health board I have never visited since I started the Shaping Bereavement Care work in 2009.&nbsp; I am also due to make a return visit to NHS Borders where I have also been invited to meet the Borders Voluntary Community Care Forum.</p>
+<p><strong><span style="text-decoration: underline;">Cross Party Group</span></strong>: Last month I attended the regular meeting of the Scottish Parliament Cross Party Group on Funerals and Bereavement.&nbsp; This group brings together MSPs, Funeral Directors and representatives of some of the voluntary sector groups to discuss things like problems when someone dies overseas, return of ashes following cremation, the cost of funerals, and death certification, and also issues raised by MSPs on behalf of constituents.&nbsp;</p>
+<p><strong><span style="text-decoration: underline;">Funeral Poverty:</span></strong> An interesting email last week from a man who had read about funeral poverty on our website.&nbsp; Ken West, who is the author of&nbsp; A Guide to Natural Burial is shortly to publish a book on the British Way of Death which he is calling &ldquo;R.I.P. Off!&rdquo;&nbsp; Our own work around Funeral Poverty is on-going, and we have received encouraging responses to our proposals from both the National Association of Funeral Directors and COSLA.</p>
+<p><strong><span style="text-decoration: underline;">Facebook:</span></strong> I have been looking at some of the stories turned up by a search on Google Alerts under &ldquo;grief&rdquo; and found this interesting article which suggests that Facebook gives people a space to do their grieving.&nbsp; A research paper entitled &ldquo;The Ghosts in the Machine: A grounded theory approach to understanding how social networking sites are used to manage death, loss and grief&rdquo; is currently under review.&nbsp; Read the article in The Advocate <a href="http://theadvocate.com/features/people/6412889-123/our-grievingspace">here.</a></p>
+<p><strong><span style="text-decoration: underline;">Network Day:&nbsp; </span></strong>Don&rsquo;t forget the Hub Network Day on Wednesday 2 October. &nbsp;Updates on Bereavement Education.&nbsp; A full day of networking, updates and discussion.&nbsp; The programme will be posted on the website later this week, but make sure the date is in your diary. &nbsp;The day will be subsidised and will cost only &pound;25.</p>
+<p><span style="color: #000080;">27 May</span></p>
+<p><span style="color: #000080;">&nbsp;</span></p>
+<p>When we launched the Hub we said it would be predominantly a virtual network, linked by the website.&nbsp; But we also said that we would try to offer occasional opportunities to meet with each other.&nbsp; <strong>The first Hub Network Day will be held in Stirling on Wednesday 2 October.&nbsp;&nbsp; </strong>Please put that date in your diary now and we will post more details very soon.</p>
+<p><span style="color: #000080;"><span style="color: #000080;">A meeting such as that reminds us that bereavement is not just an experience, but a topic for study and research, and the breadth of the research base is what can make our work effective.&nbsp;&nbsp; The NHS Scotland Quality Strategy calls on us to develop evidence-based practice, and if we, in the Hub, are to be a community of good practice then we need to be aware of that research.&nbsp; We have now added a page ot the website for </span><a href="212_Researchpapers.html" target="_blank"><span style="color: #000080;">Research&nbsp;Papers </span></a><span style="color: #000080;">and we hope that anyone undertaking research in Scotland will allow us to share their work&nbsp;on that page.&nbsp; Recent reports on the Socio-Economic Costs of Bereavement can be found there, along with an interesting dissertation on how student nurses on an oncology ward cope with death of their patients.</span></span></p>
+<p>&nbsp;</p>
+<p><span style="color: #000080;"><strong>Bereavement Research</strong>: At the beginning of the month I was fortunate enough to be invited to be a candidate for election to the International Work Group on Death Dying and Bereavement and to attend their 27th meeting which was held in Victoria, Canada.&nbsp; It was a busy week with study groups each day; stimulating and challenging, but made enjoyable by the presence of so many people whom I had only known as names on a booklist before!&nbsp; There was a lot of interest in how we have developed things in Scotland - and a degree of jealousy for the way bereavement care has been mainstreamed within Scottish Government policy.</span></p>
+<p><span style="color: #000080;"><span style="color: #000080;"><strong>Cremation of Babies and Infants</strong>: There's been a lot in the press over the past few months about parents who have experienced the death of a baby or infant and have received confusing messages about cremated remains.&nbsp; The Scottish Government has set up an independent commission to look into this and bring forward recommendations.&nbsp; I have been invited to serve on the commission.&nbsp; The Commission has issued an invitation to parents and others to submit written evidence, and I would encourage members of the Hub who have concerns about this topic, or who are in touch with parents who have concerns, to visit the </span><a href="http://www.scotland.gov.uk/News/Releases/2013/05/infantcremation220513" target="_blank"><span style="color: #000080;">Commission's pages </span></a><span style="color: #000080;">on the Scottish Government Website.</span></span></p>
+<p><span style="color: #000080;">The Amazon website tells me that the 5th edition of the <strong>Diagnostic and Statistical Manual</strong>, published by the American Psychiatric Association&nbsp;will be available from 31 May for only &pound;85.36.&nbsp; You&nbsp;may have heard some of the debate and discussion over the past few months around what is called the "bereavement exclusion".&nbsp; Up until now the criteria for diagnosing major depression had&nbsp;a clause which accepted that&nbsp;people who were bereaved might present being depressed, but that depression was part of normal grieving.&nbsp;&nbsp; The "exclusion"&nbsp;was important because such depression would resolve as the grief work was done.&nbsp; The removal of that clause opens the way for people to be diagnosed as having a major depressive illness because they are grieving.&nbsp; The result of that, which is of concern, is that this signposts an increasing medicalisation of grief.&nbsp; It also opens the way for the development of a "grief pill".&nbsp;&nbsp; We know that bereaved people want the pain to go away.&nbsp;&nbsp;But should that pain be dulled out by medication, or should it be worked through as part of coming to terms with the death of a loved one.&nbsp;&nbsp; Grief is painful - but it is often in the working though of that pain that people find their way to the new normality in which they are reconciled with their grief.</span></p>
+<p><span style="color: #000080;">&nbsp;</span></p>
+<p><span style="color: #000080;">&nbsp;</span></p>
+<p><span style="color: #008000;">&nbsp;</span></p>
+<p><span style="color: #008000;">23 April</span></p>
+<p><span style="color: #008000;">Over the past month we have heard a great deal about baby deaths, with the concerns raised from Edinburgh at the end of last year sparking off a range of other debates about baby funerals and the disposal of ashes.&nbsp; I expect that many of&nbsp;Hub members&nbsp;may have been involved in discussions at local level.&nbsp; These are sensitive topics, and we are reminded that the death of a baby or of a child is something which stays with parents for a very long time.&nbsp; </span></p>
+<p><span style="color: #008000;">The various enquiries which have been called for&nbsp;may help to clarify what has happened in the past, but underpinning all of this is the need for very clear communication between hospitals, funeral directors, cemetery and crematorium management and parents.&nbsp; If there are going to be no ashes, we need to say so.&nbsp; If we are not sure whether there will be any ashes or not, we need to say that.&nbsp; And if we are uncertain whether the "ash" is of human origin or comes from the coffin, we need to be honest about that.</span></p>
+<p><span style="color: #008000;">Cruse Bereavement Care Scotland has just launched an e-learning course on bereavement following the death of a child.&nbsp; It will find its way onto&nbsp;learnPro menus across NHSScotland&nbsp;over the next month.&nbsp; You may also be interested in the <a href="news39d7.html?id=145" target="_blank">Scottish Stillbith Seminar </a>which is being hosted by Scottish Government and SANDS in Edinburgh on 14 June.</span></p>
+<p><span style="color: #008000;">Communication is at the heart of most of the complaints about death and dying.&nbsp; And behind poor communication there is often a lack of confidence around speaking about death.&nbsp; Members of the Hub can help change that by being open in our own discussions about death.&nbsp; One big step is to stop using euphemisms and be prepared to use words like&nbsp;dead and died. </span></p>
+<p><span style="color: #008000;">Good Life Good Death Good Grief hold their first <a href="news4238.html?id=142" target="_blank">National Awareness Week </a>from 13 - 19 May.&nbsp; As part of that they are encouraging people to set up "Before I Die" walls where passers-by can add a thought about what they would like to do before they die - and at the same time become slightly more aware that death is something universal. There will be an on-line wall as well, where we can all add our thoughts!&nbsp; We'll add a link to the on-line wall as soon as it is announced - please cascade that link when you see it.</span></p>
+<p><span style="color: #008000;">I had a really useful day in NHS Highland earlier this month, with meetings with a variety of staff involved in developing bereavement services there.&nbsp; Thanks to the Hub members who came along for a general discussion, or to&nbsp;talk directly about their work.&nbsp; I also spent an interesting morning with the Chief Executive of the Scottish Cot Death Trust, who has the dual role of developing research into Cot Death, and extending support to bereaved parents across Scotland.&nbsp; It's a huge remit for a small charity - you can read about their work on their website at <a href="http://www.scottishcotdeathtrust.org/">www.scottishcotdeathtrust.org</a> Their website also&nbsp;has a useful Professionals Area.</span></p>
+<p><span style="color: #008000;">We held a very successful round table discussion on funeral poverty in Edinburgh on 8 April.&nbsp; A report of the meeting will appear on the Hub once it has been agreed, but discussion ranged over the high cost of funerals, the cap on the Funeral Payment, and the effect of the "bedroom tax" on bereaved people.&nbsp; The problem of paying for a funeral - and often having to do so unexpectedly and at short notice - is one which worries many bereaved people.</span></p>
+<p><span style="color: #008000;">&nbsp;</span></p>
+<p><span style="color: #000080;">26 March</span></p>
+<p><span style="color: #000080;">Two pieces of news today: </span></p>
+<p><span style="color: #000080;">Firstly we now have a BSL version of When Someone Has Died.&nbsp; Go to the HRIS pages <a href="http://www.hris.org.uk/patient-information/information-about-health-services/bereavement/" target="_blank">here</a></span></p>
+<p><span style="color: #000080;">Secondly - we have been tidying up the <a href="members/login5700.html" target="_blank">NHS Resources</a>&nbsp;area on the website, hopefully making it easier to find what is there - and making ot easier to see where you could add materials from your area of work.</span></p>
+<p><span style="color: #000080;">March has been a busy month. </span></p>
+<p><span style="color: #000080;">Visits to NHS Forth Valley and NHS Grampianto meet withtheir Bereavement Groups, brought me up to date with a number of initiatives - updates of their implementation plans, revisions of literature and policies, discussions around death certification and funeral poverty.</span></p>
+<p><span style="color: #000080;">Forth Valley has again surveyed local registrars to check on accuracy of the&nbsp;MCCDs completed both in hospitals and the community.&nbsp; Although the number requiring adjustment or discussion was still high - at almost 40% - this showed a slight improvement from their previous audit.&nbsp; I wonder how typical this is of Scotland as a whole.&nbsp; Has anyone else done such an exercise?</span></p>
+<p><span style="color: #000080;">It was good to hear that NHS Grampian has piloted the learnPro e-learning developed by Cruse and will be&nbsp;recommending it to staff.&nbsp;&nbsp;Grampian do not currently use learnPro for their e-learning platform, but Cruse has arranged for the courses to be made available to their staff all the same.&nbsp; That is now all the territorial boards using these courses.</span></p>
+<p><span style="color: #000080;">I also had a brief meeting with a representative from NHS Greater Glasgow and Clyde and again heard how ell the e-learning was being received there.</span></p>
+<p><span style="color: #000080;">Two days this month were given over to meetings regarding the new Death Certification procedures which will come into operation in April 2014.&nbsp; A great deal of planning remains to be done.&nbsp; The new procedures will affect medical staff.&nbsp; However a range of staff will be involved in the support of relatives who will need to be helped to understand that the review of the MCCD is an administrative measure, and does not imply any doubtover the cause of death.&nbsp; They will also need reassurance over the delays which the new process will inevitably cause.&nbsp; Mortuary staff are likely to find that the delay affects their service also.</span></p>
+<p><span style="color: #000080;">On 18 March the Hub had a stall at the launch of a new training for those who respond to deaths by suicide.&nbsp; More Questions Than Answers is a blended learning programme consisting of an e-learning module (available on both learnPro and Moodle) and then a choice of three workshops, one for primary responders, one for secondary responders and one for staff and others in the community.&nbsp; The course was developed by NHS HealthScotland/Choose Life in conjunction withCruse Bereavement Care Scotland, and is centred on video interviews with people who were bereaved by suicide.&nbsp;Details from <a href="mailto:mqta@crusescotland.org.uk">mqta@crusescotland.org.uk</a> </span></p>
+<p><span style="color: #000080;">Also at that launch&nbsp;Choose Life launched a new publication: <a href="http://www.healthscotland.com/documents/20648.aspx" target="_blank">Supporting People Bereaved by Suicide - a good practice guide for organisations that respond to suicide </a>and SamH (Scottish Association for Mental Health)&nbsp;launched a new version of their publication "After A Suicide" which is now <a href="http://www.samhsecure.org.uk/aas/index.html" target="_blank">available on line </a>along with some video interviews featuring some of the professionals involved in the follow up to death by suicide.</span></p>
+<p><span style="color: #000080;">The other major concern this month has been the future of the Hub.&nbsp; When we were set up by the Scottish Government at the beginning of last year, we were funded until 31 March 2013.&nbsp; As that date approaches, I am delighted to say that the Government has extended our funding (under the Person Centred agenda) for a further six months.&nbsp; During that time there will be discussions and an evaluation of the Hub to decide how it will be supported in the longer term.&nbsp; </span></p>
+<p><span style="color: #000080;">Thanks to those who have sent in policies and papers for our Resources Zone.&nbsp; We are looking for many more people to send materials so that our resource bank can be a real support to those working on local initiatives.</span></p>
+<p><span style="color: #000080;">Thanks, too, to Derek Brown, Bereavement Coordinator in NHS Highland who displayed materials about the Hub at a recent conference at Highland Hospice.&nbsp; If you are attending any meetings or conferences in your area and could help us by taking materials about the Hub along, please do get in touch.</span></p>
+<p><span style="color: #000080;">&nbsp;</span></p>
+<p><span style="color: #ff0000;">14 February</span></p>
+<p><span style="color: #ff0000;">A quick update on a few things.</span></p>
+<p><span style="color: #ff0000;">The discussions about the National Standards for Bereavement Services is moving forwards. <a href="cms/files/bereavement_care_service_standards_2012_ac_dk_commentsv8.doc">Click here </a>to see the draft document, and please <a href="mailto:griefhub.tayside@nhs.net">send any comments to me </a>as soon as possible.</span></p>
+<p><span style="color: #ff0000;">The discussions about funeral poverty - the problem of people not being able to pay for a funeral for which they are responsible - has also moved on a little. We hope to hold a small meeting in Scotland to discuss how this affects folk here, but in the meantime I would be keen to hear of cases where the cost of a funeral has led to debt or extreme distress. <a href="mailto:griefhub.tayside@nhs.net">Please email me</a>.</span></p>
+<p><span style="color: #ff0000;">Two new postings today:</span></p>
+<p><span style="color: #ff0000;">a) A course in Dundee on Child Bereavement in Schools being offered by Child Bereavement UK and Barnardos - see the courses menu under the EDUCATION Tab</span></p>
+<p><span style="color: #ff0000;">b) Good Life Good Death Good Grief are planning an Awareness Week in May. See the details under the NEWS tab</span></p>
+<p><span style="color: #ff0000;">We are still gathering members, but the growth has slowed a little in the past couple of weeks. Please do encourage colleagues to sign up for the Hub website.</span></p>
+<p><span style="color: #008000;">&nbsp;</span></p>
+<p><span style="color: #008000;">04 February</span></p>
+<p><span style="color: #008000;">I am delighted to tell you that when we came back from our Christmas break, Evonne Johansen joined us as Administrative Officer for the Hub. Evonne has been working in the Communications Department of NHS Tayside, and so has experience which will be really useful to the Hub. Hopefully we will be able to be a bit more efficient in keeping the website up to date with the latest additions. </span></p>
+<p><span style="color: #008000;">Thank you to all those who helped us by encouraging colleagues to sign up to our network. Our network grows day by day - even on Christmas day by mobile beeped with a new registration! We have around 350 members in our community and it would be great if, during February, you could each encourage one colleague to sign up (of course more than one would be even better). We are beginning to look at a Network Day later in the year, when we hope to get as many as possible of our members together, but in the meantime I am soon to be embarking on visits to all the NHS Boards where I hope to meet as many of you as possible.</span></p>
+<p><span style="color: #008000;">Two priorities for the website just now are the Resources area and the Links area. In the Resources area you will see we have been given permission to add <a href="209_Resourcesfromothersources.html">leaflets from the Northern Ireland Eastern Trauma Advisory Panel</a>. These are excellent resources, and I encourage you to look at them and use them if they are appropriate. </span></p>
+<p><span style="color: #008000;">We have also been able to add a couple of NHS policies form Tayside- including the first policy we have seen following the publication of the Scottish Government guidance on the disposal of early pregnancy loss. You'll find these in the NHS Resources area under the Resources Tab. We are keen to hear from other boards, and add their policies to this slowly growing library. This area of the website can be really helpful - last week I was meeting with a newly appointed bereavement coordinator who was asking how she could avoid re-inventing the wheel! That's a frequent request, so let's all get sharing our resources.</span></p>
+<p><span style="color: #008000;">The other priority is the links page, which has languished at the end of the menu for a year without much happening. These are links to help you in your work, so any useful links oyu have, please send them in to Evonne.</span></p>
+<p><span style="color: #008000;">Two major issues in which the Hub is involved just now are developing south of the border, but we have been invited to be part of both. The first is a draft of new Standards for Bereavement Services (to replace the outdated 2001 UK standards). The National Bereavement Alliance in England is working on these new standards, and the Hub's Core Group will be discussing them next week, so watch this space.</span></p>
+<p><span style="color: #008000;">The other issue is Funeral Poverty. We mentioned this last month, and I am grateful to those who have shared stories of families facing real challenges to pay for a funeral, or to plan a funeral which they can afford. The Hub has been invited to be represented at a UK working gorup on this major issue which is estimated to run at &pound;117 million.</span></p>
+<p><span style="color: #008000;">And in the meantime the work on planning the implementation of the new procedures on Death Certification is going on at a rapid pace. Mark Evans, form NHS Fife, represents the Hub on the main working group, and he and I have been involved with discussions about the processes and the training of staff. The target is still to have this all in place for April 2014, and the Hub will be a major player in spreading information about these new procedures to you, and through you to your colleagues.</span></p>
+<p><span style="color: #008000;">&nbsp;</span></p>
+<p><span style="color: #008000;">&nbsp;</span></p>
+<p><span style="color: #ff0000;">20 December</span></p>
+<p><span style="color: #993366;"><span style="color: #ff0000;">As reported elsewhere, the </span><a href="http://www.nhsinform.co.uk/bereavement" target="_blank"><span style="color: #ff0000;">Bereavement Zone </span></a><span style="color: #ff0000;">on NHS Inform went llive last week, and we now offer a live link to it on the resources page of this site. Please do take a look at it ad let us know what you think.</span></span></p>
+<p><span style="color: #993366;"><span style="color: #ff0000;">Yesterday we sent a Christmas card to all our registered members on the website, and in it we mentioned the loneliness of people who have benerecently bereaved and who are often very conscious of "the empty seat at the Christmas table". The Hub has an agreement with the Australian Centre for Grief and Bereavement, and I was interested to see today that they have posted a link to an information sheet on coping withanniversariesand special events. With their permission, we offer our own link to that publication - please click </span><a href="cms/files/anniversaries%2band%2bspecial%2boccasions.html"><span style="color: #ff0000;">here.</span></a></span></p>
+<p><span style="color: #993366;"><span style="color: #ff0000;">Towards the end of November, Caroline Pretty, bereavement coordinator in NHS Lothian, represented the Hub at an event organised by Children's Hospice Association Scotland, looking at the effective palliative care fo children. Each organisation represented was asked to make a pledge, and you can read Carolin's report and the pledge she made on our behalf by clicking </span><a href="cms/files/chas_square_table_event_201112%5b1%5d.pdf"><span style="color: #ff0000;">here</span></a><span style="color: #ff0000;">. Caroline has agreed that, as well as being a community of good practice in bereavement support, we will pursue the question of quality information for bereaved parents. You may recall we spoke about this earlier in the year, when we held a meeting of representatives from several boards and discussed a similar pack to When Someone Has Died relating to "when a child has died. That work is still under consideration - there is meeting at Scottish Government in January which I hope will take this forward.</span></span></p>
+<p><span style="color: #ff0000;">Speaking of When Someone Has Died, we had a visit last week from Hiroshi Yamazaki from Shinshu University in Japan. He and a colleague were in Scotland a year ago, and he had returned to hear more about the developing bereavement agenda in Scotland. He and his colleagues are working on a Japanese version of WHSD and he has also offered a Japanese translation of our pack.</span></p>
+<p><span style="color: #993366;"><span style="color: #ff0000;">Other visitors, just yesterday, were Mal McKissock and his wife Diane who run the Bereavement Centre in New South Wales. Mal was the first bereavement counsellor employed by health services in Australia, and has a world wide reputation as a trainer in bereavement care and counselling. We look forward to having some exchange with Mal over the next year, and to reading more about his "Infinity model" of bereavement support, and to reading his book "Coping with Grief", which is now in its 4th edition.</span></span></p>
+<p><span style="color: #993366;"><span style="color: #ff0000;">The Hub office will be closed from 24 January for 2 weeks. Emails to the Hub (</span><a href="mailto:griefhub.tayside@nhs.net"><span style="color: #ff0000;">griefhub.tayside@nhs.net</span></a><span style="color: #ff0000;">) will probably go un-answered for those 2 weeks - but they wont get lost.</span></span></p>
+<p><span style="color: #ff0000;">Hoping everyone has a good holiday break.</span></p>
+<p><span style="color: #993366;">&nbsp;</span></p>
+<p><span style="color: #993366;">29 November:</span></p>
+<p><span style="color: #993366;">On Friday last week we launched a membership drive, inviting people to tell a friend about the Hub. Well that is exactly what people must have done, because by today, just five days later, we have welcomed over 60 new registrations. Please keep up the good work - the bigger the Hub can grow, the more information we can exchange.</span></p>
+<p><span style="color: #993366;">I have been trying to update the pages of this website today, and have been struggling to try to gather up-to-the minute news stories. What is news today may well be "old hat" by the time visitors to this site read it. My own updating comes largely thr
+	</div> <!-- end of block -->    
+	
+	    <div id="sidebar">
+        <div class="section2">
+                            <a href="members/forum/index.html">
+                    <div class="border_container2">
+                        <div class="border2">&nbsp;</div>
+                        <img src="images/forum2.jpg" alt="moderated forum"/>
+                    </div>
+                    <span>Members' Forum</span>
+                </a>
+                <p>Click here to raise an issue, join the discussion or ask a question.</p>
+                
+        </div><!-- end of section2 -->
+        
+        <div class="latest">
+            <a href="news.html" class="feed">Latest News</a>
+             
+
+                <div class="news_block">
+                    <a href="newsd17a.html?id=188">
+                        <div>
+                             <span class="day">23</span>
+                             <span class="date">Jun</span>
+                        </div>
+                       
+                        <p>The Real Deal: Funeral Costs<span>&nbsp;</span></p>
+                    </a>
+                </div>
+                 
+
+                <div class="news_block">
+                    <a href="news51c2.html?id=187">
+                        <div>
+                             <span class="day">04</span>
+                             <span class="date">Jun</span>
+                        </div>
+                       
+                        <p>New PAMIS resource<span>&nbsp;</span></p>
+                    </a>
+                </div>
+                 
+
+                <div class="news_block">
+                    <a href="newsf9a9.html?id=186">
+                        <div>
+                             <span class="day">19</span>
+                             <span class="date">May</span>
+                        </div>
+                       
+                        <p>Death Certification Briefing<span>&nbsp;</span></p>
+                    </a>
+                </div>
+                                     
+        </div><!-- end of latest -->
+        
+    </div><!-- end of sidebar -->
+        
+</div><!-- end of content -->       		<div id="footer">
+				<div class="credits">
+                    <p>Copyright &copy; 2012                         &ndash; 2014, Scottish Grief &amp; Bereavement Hub. All Rights Reserved</p>
+    				
+    				<p><a href="http://www.mtcmedia.co.uk/" target="_blank" rel="external" title="Opens in a new window">Website design</a>, Development and Hosting by
+    				<a href="http://www.mtcmedia.co.uk/" target="_blank" rel="external" title="Opens in a new window"><strong>mtc</strong>.</p>
+				</div><!-- end of credits -->
+                				<a href="https://twitter.com/griefhubscot" target="_blank" class="right twitterIcon"><img src="images/twitterIcon.png" alt="Follow us on Twitter!" title="Follow us on Twitter!"></a>
+				
+			</div><!-- end of footer -->
+       
+		</div><!-- end of wrapper -->
+		
+		<script src="../ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script>window.jQuery || document.write('<script src="js/jquery-1.7.1.min.js">\x3C/script>')</script>
+		
+		<script src="js/jquery-ui-1.8.18.custom.min.js"></script>
+		
+        <!-- jquery cycle -->
+		<script src="js/cycle.js"></script>
+		
+        <!-- google maps -->
+        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+        
+        <script type="text/javascript" src="js/iepngfix_tilebg.js"></script>		
+		
+       <script src="js/script.js"></script> 
+		
+		
+        <script type="text/javascript">
+        $(document).ready(function() {
+           $(function() {
+        
+                $( "#datepicker" ).datepicker({ 
+                    showOtherMonths: true,
+                    beforeShowDay: availableDays,
+                    onSelect: gotoEvent,
+                    dayNamesMin: ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']                });
+                
+            });
+           
+        });
+
+            availDays = [                ['06', '21', '2012']
+                                    ,['06', '22', '2012']
+                        ,                ['09', '25', '2012']
+            ,                ['05', '17', '2012']
+            ,                ['05', '29', '2012']
+            ,                ['05', '16', '2012']
+            ,                ['09', '05', '2013']
+                                    ,['09', '06', '2013']
+                                                ,['09', '07', '2013']
+                                                ,['09', '08', '2013']
+                        ,                ['10', '31', '2013']
+            ,                ['10', '11', '2012']
+            ,                ['11', '23', '2012']
+            ,                ['05', '24', '2013']
+            ,                ['05', '24', '2013']
+            ,                ['05', '23', '2013']
+            ,                ['06', '14', '2013']
+            ,                ['08', '30', '2013']
+            ,                ['04', '09', '2014']
+                                    ,['04', '10', '2014']
+                        ,                ['01', '31', '2014']
+                                    ,['02', '01', '2014']
+                                                ,['02', '02', '2014']
+                        ];
+    
+            function availableDays(date)
+            {
+                for (i = 0; i < availDays.length; i++)
+                {
+                    var yy = date.getYear();
+                    var year = (yy < 1000) ? yy + 1900 : yy;
+    
+                    if ((date.getMonth() == (availDays[i][0] - 1)) && (date.getDate() == availDays[i][1]) && (year == availDays[i][2])){
+                        return [true, " "];
+                    }
+    
+                }
+    
+                return [false, "unavail_day"];
+    
+            }
+    
+            function gotoEvent(date){
+                $('#eventsReplace').html('<img class="loading" src="images/loading.gif" />');
+                $('#eventsReplace').load('events/search.html',{'date':date});
+            }
+
+        </script>   
+	
+   </body>
+
+
+<!-- Mirrored from www.griefhub.org.uk/196_HubNews.html by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 27 Jun 2014 07:37:39 GMT -->
+</html>
